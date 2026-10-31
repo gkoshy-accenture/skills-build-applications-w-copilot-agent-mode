@@ -1,11 +1,20 @@
+import { getJson } from '../api/client.js';
 import { CapabilityCard } from './CapabilityCard.js';
+import { useCapabilityData } from './CapabilityCard.js';
+
 export default function Leaderboard() {
+  const { items, isLoading, error } = useCapabilityData(
+    () => getJson<{ leaderboard: Record<string, unknown>[] }>('/api/leaderboard'),
+    'leaderboard',
+  );
+
   return (
     <CapabilityCard
       title="Leaderboard"
       description="Compare team point totals."
-      path="/api/leaderboard"
-      listKey="leaderboard"
+      items={items}
+      isLoading={isLoading}
+      error={error}
       emptyText="No leaderboard rankings yet."
       renderItem={(item) => {
         const entry = item as Record<string, unknown>;

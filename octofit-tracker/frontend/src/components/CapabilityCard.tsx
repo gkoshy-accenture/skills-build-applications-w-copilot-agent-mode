@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
-import { getJson } from '../api/client.js';
 
 type RecordLike = Record<string, unknown>;
 
 type Props = {
   title: string;
   description: string;
-  path: string;
-  listKey: string;
+  items: RecordLike[];
+  isLoading: boolean;
+  error: string | null;
   emptyText: string;
   renderItem: (item: RecordLike, index: number) => React.ReactNode;
 };
 
-export function CapabilityCard({ title, description, path, listKey, emptyText, renderItem }: Props) {
+export function useCapabilityData(request: () => Promise<Record<string, unknown>>, listKey: string) {
   const [items, setItems] = useState<RecordLike[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,8 +25,8 @@ export function CapabilityCard({ title, description, path, listKey, emptyText, r
       setError(null);
 
       try {
-        const payload = await getJson<RecordLike>(path);
-        const nextItems = Array.isArray((payload ?? {})[listKey]) ? ((payload ?? {})[listKey] as RecordLike[]) : [];
+        const payload = await request();
+        const nextItems = Array.isArray(payload[listKey]) ? (payload[listKey] as RecordLike[]) : [];
 
         if (isMounted) {
           setItems(nextItems);
@@ -47,8 +47,12 @@ export function CapabilityCard({ title, description, path, listKey, emptyText, r
     return () => {
       isMounted = false;
     };
-  }, [listKey, path]);
+  }, []);
 
+  return { items, isLoading, error };
+}
+
+export function CapabilityCard({ title, description, items, isLoading, error, emptyText, renderItem }: Props) {
   return (
     <section className="card h-100">
       <div className="card-body">
